@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Buddy</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#f4f7ff;
+color:#172033;
+}
+
+header{
+background:#172033;
+color:white;
+text-align:center;
+padding:25px 15px;
+}
+
+header h1{
+margin:0;
+font-size:30px;
+}
+
+header p{
+margin-bottom:0;
+}
+
+.container{
+max-width:700px;
+margin:auto;
+padding:20px;
+}
+
+.box{
+background:white;
+padding:20px;
+margin-bottom:20px;
+border-radius:16px;
+box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+h2{margin-top:0}
+
+input,textarea,select{
+width:100%;
+padding:13px;
+border:1px solid #ccd2df;
+border-radius:10px;
+font-size:16px;
+margin:8px 0;
+}
+
+textarea{resize:vertical}
+
+button{
+border:none;
+padding:12px 18px;
+border-radius:10px;
+font-size:15px;
+cursor:pointer;
+margin:5px;
+background:#172033;
+color:white;
+}
+
+button:hover{opacity:.85}
+
+.green{background:#16834b}
+.red{background:#d93636}
+.blue{background:#3157d5}
+
+.timer{
+text-align:center;
+font-size:48px;
+font-weight:bold;
+margin:25px 0;
+}
+
+.center{text-align:center}
+
+.target{
+text-align:center;
+font-size:20px;
+margin-top:15px;
+}
+
+.progressBox{
+background:#e8ecf7;
+height:18px;
+border-radius:20px;
+overflow:hidden;
+margin:15px 0;
+}
+
+.progressBar{
+height:100%;
+width:0%;
+background:#3157d5;
+transition:.3s;
+}
+
+.subjectRow{
+display:flex;
+justify-content:space-between;
+padding:12px;
+margin:8px 0;
+background:#f1f3f8;
+border-radius:10px;
+}
+
+.note{
+background:#f1f3f8;
+padding:15px;
+margin-top:12px;
+border-radius:12px;
+}
+
+.note h3{margin-top:0}
+
+.aiResult{
+background:#eef2ff;
+padding:15px;
+border-radius:12px;
+margin-top:15px;
+line-height:1.6;
+}
+
+.loading{
+text-align:center;
+padding:20px;
+font-weight:bold;
+}
+
+.aiError{
+background:#ffecec;
+color:#a00000;
+padding:15px;
+border-radius:12px;
+margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>📚 Study Buddy</h1>
+<p>My Personal Study Manager</p>
+</header>
+
+<div class="container">
+
+<!-- TARGET -->
+<div class="box">
+<h2>🎯 Today's Target</h2>
+
+<input
+id="targetHours"
+type="number"
+min="0.5"
+step="0.5"
+placeholder="Kitne hours padhna hai?"
+>
+
+<div class="center">
+<button onclick="setTarget()">🎯 Set Target</button>
+</div>
+
+<div id="targetText" class="target">
+Target set nahi hai
+</div>
+</div>
+
+
+<!-- TIMER -->
+<div class="box">
+
+<h2>⏱️ Study Timer</h2>
+
+<label>Kis subject ki padhai kar rahe ho?</label>
+
+<select id="subject">
+<option value="Physics">Physics</option>
+<option value="Chemistry">Chemistry</option>
+<option value="Mathematics">Mathematics</option>
+<option value="Hindi">Hindi</option>
+<option value="English">English</option>
+</select>
+
+<div id="timer" class="timer">
+00:00:00
+</div>
+
+<div class="center">
+
+<button class="green" onclick="startTimer()">
+▶ Start
+</button>
+
+<button onclick="pauseTimer()">
+⏸ Pause
+</button>
+
+<button class="red" onclick="stopTimer()">
+⏹ Stop
+</button>
+
+</div>
+
+<p class="center">
+Current session:
+<b>
+<span id="sessionTime">0</span> minutes
+</b>
+</p>
+
+</div>
+
+
+<!-- DAILY REPORT -->
+<div class="box">
+
+<h2>📊 Daily Report</h2>
+
+<p>
+🎯 Target:
+<b><span id="reportTarget">0</span> hours</b>
+</p>
+
+<p>
+⏱️ Total Study:
+<b><span id="reportStudy">0</span> minutes</b>
+</p>
+
+<p>
+📌 Remaining:
+<b><span id="remaining">0</span> minutes</b>
+</p>
+
+<p>
+📈 Progress:
+<b><span id="progress">0</span>%</b>
+</p>
+
+<div class="progressBox">
+<div id="progressBar" class="progressBar"></div>
+</div>
+
+<h3>📚 Subject-wise Study</h3>
+
+<div class="subjectRow">
+<span>⚡ Physics</span>
+<b><span id="PhysicsTime">0</span> min</b>
+</div>
+
+<div class="subjectRow">
+<span>🧪 Chemistry</span>
+<b><span id="ChemistryTime">0</span> min</b>
+</div>
+
+<div class="subjectRow">
+<span>📐 Mathematics</span>
+<b><span id="MathematicsTime">0</span> min</b>
+</div>
+
+<div class="subjectRow">
+<span>📖 Hindi</span>
+<b><span id="HindiTime">0</span> min</b>
+</div>
+
+<div class="subjectRow">
+<span>📕 English</span>
+<b><span id="EnglishTime">0</span> min</b>
+</div>
+
+</div>
+
+
+<!-- NOTES -->
+<div class="box">
+
+<h2>📝 Quick Notes</h2>
+
+<input
+id="noteTitle"
+type="text"
+placeholder="Note ka title"
+>
+
+<textarea
+id="noteText"
+rows="5"
+placeholder="Apna short note yahan likho..."
+></textarea>
+
+<div class="center">
+
+<button onclick="saveNote()">
+💾 Save Note
+</button>
+
+</div>
+
+<div id="notesList"></div>
+
+</div>
+
+
+<!-- REAL AI HELPER -->
+<div class="box">
+
+<h2>🤖 AI Study Helper</h2>
+
+<p>
+Topic likho aur AI tumhe concept, formulas,
+example, Board points aur JEE points samjhayega.
+</p>
+
+<select id="aiSubject">
+
+<option value="Physics">Physics</option>
+<option value="Chemistry">Chemistry</option>
+<option value="Mathematics">Mathematics</option>
+<option value="Hindi">Hindi</option>
+<option value="English">English</option>
+
+</select>
+
+<input
+id="aiTopic"
+type="text"
+placeholder="Example: Current Electricity"
+>
+
+<div class="center">
+
+<button
+class="blue"
+onclick="aiHelper()">
+🤖 Explain Topic
+</button>
+
+<button
+class="green"
+onclick="speakAI()">
+🔊 Suno
+</button>
+
+<button
+class="red"
+onclick="stopAI()">
+⏹ Stop
+</button>
+
+</div>
+
+<div id="aiResult" class="aiResult">
+AI Helper ready hai 🚀
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ==================================================
+TARGET
+================================================== */
+
+function setTarget(){
+
+let hours=Number(
+document.getElementById("targetHours").value
+);
+
+if(hours<=0){
+alert("Pehle target hours enter karo.");
+return;
+}
+
+localStorage.setItem("studyTarget",hours);
+
+updateReport();
+}
+
+
+/* ==================================================
+TIMER
+================================================== */
+
+let seconds=0;
+let timerInterval=null;
+let running=false;
+
+function startTimer(){
+
+if(running)return;
+
+running=true;
+
+timerInterval=setInterval(function(){
+
+seconds++;
+
+updateTimer();
+
+},1000);
+
+}
+
+function pauseTimer(){
+
+running=false;
+
+clearInterval(timerInterval);
+
+timerInterval=null;
+
+}
+
+function stopTimer(){
+
+pauseTimer();
+
+if(seconds>0){
+
+let subject=document.getElementById("subject").value;
+
+let oldTotal=
+Number(localStorage.getItem("totalStudy"))||0;
+
+let oldSubject=
+Number(localStorage.getItem("subject_"+subject))||0;
+
+localStorage.setItem(
+"totalStudy",
+oldTotal+seconds
+);
+
+localStorage.setItem(
+"subject_"+subject,
+oldSubject+seconds
+);
+
+}
+
+seconds=0;
+
+updateTimer();
+
+updateReport();
+
+}
+
+function updateTimer(){
+
+let hours=Math.floor(seconds/3600);
+
+let minutes=Math.floor(
+(seconds%3600)/60
+);
+
+let secs=seconds%60;
+
+document.getElementById("timer").innerText=
+String(hours).padStart(2,"0")
++":"
++String(minutes).padStart(2,"0")
++":"
++String(secs).padStart(2,"0");
+
+document.getElementById("sessionTime").innerText=
+Math.floor(seconds/60);
+
+}
+
+
+/* ==================================================
+DAILY REPORT
+================================================== */
+
+function updateReport(){
+
+let target=
+Number(localStorage.getItem("studyTarget"))||0;
+
+let totalSeconds=
+Number(localStorage.getItem("totalStudy"))||0;
+
+let totalMinutes=
+Math.floor(totalSeconds/60);
+
+let targetMinutes=target*60;
+
+let remaining=
+Math.max(targetMinutes-totalMinutes,0);
+
+let percentage=0;
+
+if(targetMinutes>0){
+
+percentage=Math.min(
+Math.round(
+(totalMinutes/targetMinutes)*100
+),
+100
+);
+
+}
+
+document.getElementById("targetText").innerText=
+target>0
+?"Aaj ka target: "+target+" hours 🎯"
+:"Target set nahi hai";
+
+document.getElementById("reportTarget").innerText=target;
+
+document.getElementById("reportStudy").innerText=totalMinutes;
+
+document.getElementById("remaining").innerText=remaining;
+
+document.getElementById("progress").innerText=percentage;
+
+document.getElementById("progressBar").style.width=
+percentage+"%";
+
+let subjects=[
+"Physics",
+"Chemistry",
+"Mathematics",
+"Hindi",
+"English"
+];
+
+subjects.forEach(function(subject){
+
+let time=
+Number(
+localStorage.getItem("subject_"+subject)
+)||0;
+
+document.getElementById(
+subject+"Time"
+).innerText=
+Math.floor(time/60);
+
+});
+
+}
+
+
+/* ==================================================
+NOTES
+================================================== */
+
+function saveNote(){
+
+let title=
+document.getElementById("noteTitle").value.trim();
+
+let text=
+document.getElementById("noteText").value.trim();
+
+if(!title||!text){
+
+alert("Title aur note dono likho.");
+
+return;
+
+}
+
+let notes=JSON.parse(
+localStorage.getItem("studyNotes")
+||"[]"
+);
+
+notes.push({
+title:title,
+text:text
+});
+
+localStorage.setItem(
+"studyNotes",
+JSON.stringify(notes)
+);
+
+document.getElementById("noteTitle").value="";
+
+document.getElementById("noteText").value="";
+
+showNotes();
+
+}
+
+function showNotes(){
+
+let notes=JSON.parse(
+localStorage.getItem("studyNotes")
+||"[]"
+);
+
+let list=
+document.getElementById("notesList");
+
+list.innerHTML="";
+
+notes.forEach(function(note,index){
+
+list.innerHTML+=`
+
+<div class="note">
+
+<h3>📝 ${escapeHTML(note.title)}</h3>
+
+<p>${escapeHTML(note.text)}</p>
+
+<button
+class="green"
+onclick="speakNote(${index})">
+🔊 Suno
+</button>
+
+<button
+class="red"
+onclick="deleteNote(${index})">
+🗑️ Delete
+</button>
+
+</div>
+
+`;
+
+});
+
+}
+
+function deleteNote(index){
+
+let notes=JSON.parse(
+localStorage.getItem("studyNotes")
+||"[]"
+);
+
+notes.splice(index,1);
+
+localStorage.setItem(
+"studyNotes",
+JSON.stringify(notes)
+);
+
+showNotes();
+
+}
+
+function speakNote(index){
+
+let notes=JSON.parse(
+localStorage.getItem("studyNotes")
+||"[]"
+);
+
+let text=
+notes[index].title
++". "
++
+notes[index].text;
+
+let speech=
+new SpeechSynthesisUtterance(text);
+
+speech.lang="hi-IN";
+
+speech.rate=0.9;
+
+speechSynthesis.cancel();
+
+speechSynthesis.speak(speech);
+
+}
+
+function escapeHTML(text){
+
+let div=document.createElement("div");
+
+div.textContent=text;
+
+return div.innerHTML;
+
+}
+
+
+/* ==================================================
+REAL AI HELPER
+================================================== */
+
+let lastAIText="";
+
+async function aiHelper(){
+
+let topic=
+document.getElementById("aiTopic").value.trim();
+
+let subject=
+document.getElementById("aiSubject").value;
+
+let result=
+document.getElementById("aiResult");
+
+if(!topic){
+
+alert("Pehle topic likho.");
+
+return;
+
+}
+
+result.innerHTML=`
+<div class="loading">
+🤖 AI soch raha hai...<br>
+Thoda wait karo.
+</div>
+`;
+
+try{
+
+let response=await fetch("/api/chat",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+subject:subject,
+
+topic:topic
+
+})
+
+});
+
+let data=await response.json();
+
+if(!response.ok){
+
+throw new Error(
+data.error||"AI request failed"
+);
+
+}
+
+lastAIText=data.answer||"AI ne answer nahi diya.";
+
+result.innerHTML=
+formatAIText(lastAIText);
+
+}
+
+catch(error){
+
+result.innerHTML=`
+
+<div class="aiError">
+
+❌ AI Helper connect nahi ho paya.
+
+<br><br>
+
+<b>Error:</b>
+${escapeHTML(error.message)}
+
+<br><br>
+
+Vercel mein OPENAI_API_KEY
+Environment Variable check karo.
+
+</div>
+
+`;
+
+}
+
+}
+
+
+/* ==================================================
+AI TEXT FORMAT
+================================================== */
+
+function formatAIText(text){
+
+let safe=escapeHTML(text);
+
+safe=safe.replace(
+/\*\*(.*?)\*\*/g,
+"<strong>$1</strong>"
+);
+
+safe=safe.replace(
+/\n/g,
+"<br>"
+);
+
+return safe;
+
+}
+
+
+/* ==================================================
+AI VOICE
+================================================== */
+
+function speakAI(){
+
+if(!lastAIText){
+
+alert("Pehle AI se topic explain karwao.");
+
+return;
+
+}
+
+let speech=
+new SpeechSynthesisUtterance(
+lastAIText
+);
+
+speech.lang="hi-IN";
+
+speech.rate=0.9;
+
+speechSynthesis.cancel();
+
+speechSynthesis.speak(speech);
+
+}
+
+function stopAI(){
+
+speechSynthesis.cancel();
+
+}
+
+
+/* ==================================================
+LOAD DATA
+================================================== */
+
+updateReport();
+
+showNotes();
+
+</script>
+
+</body>
+</html>
