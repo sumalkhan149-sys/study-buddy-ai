@@ -1,0 +1,10 @@
+{
+  "name": "Study Buddy AI",
+  "short_name": "Study Buddy",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "description": "Class 12 UP Board + JEE Study Buddy AI",
+  "orientation": "portrait"
+}
